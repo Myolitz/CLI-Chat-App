@@ -1,3 +1,12 @@
+///
+///     This is useless, I don't need multiple client **objects**
+///     I need multiple client **connections** all running the
+///     same server processes. Keeping this here in case future
+///     me decides that he's stupid enough to think of doing this
+///     again.
+///
+
+
 package ClientProfiles;
 
 //Libraries:
@@ -27,6 +36,7 @@ public class UserClient
             srvrLog = new DataOutputStream(new BufferedOutputStream(System.out));
 
             clientSend.writeUTF("What should you be called?");
+            clientSend.flush();
             userName = clientReceive.readUTF();
             userAddress = clientSocket.getLocalAddress();
 

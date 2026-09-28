@@ -1,79 +1,85 @@
 /** Class: COSC 2327
  *  LAST EDITED: 9/24/26
  * @author Jesus Cardenas
- * @operating-system Endeavour OS
+ * @operating-system Endeavour OS (Linux)
  */
 
 //Libraries
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-
 
 public class ServerSide
 {
-    private ArrayList<Socket> socketLists = new ArrayList<>();
+    //Objects
+    DataOutputStream serverToClient;
+    DataInputStream clientToServer;
+    DataOutputStream serverLog;
+
+    //Variables
+    private int networkPort = 12345;
     protected int idxUserClient;
     protected int numUsers;
+    protected ServerSocket srvrSocket;
+    private Socket clientSocket;
+
+    ///For Debug Purposes
+    int numClientMessages;
+    String userString;
+
+    public ServerSide()
+    {
+        numClientMessages = 0;
+        userString = "";
+
+        try
+        {
+            srvrSocket = new ServerSocket(networkPort);
+            System.out.println("Server started and listening on port " + networkPort);
+        } catch (IOException e)
+        {
+            System.out.println("IO Exception caught");
+        }
+    }
 
     public void start()
     {
-        // Object initializing
-        DataInputStream clientReceive;
-        DataOutputStream clientSend;
-        DataOutputStream srvrLog;
+            try
+            {
+                //Connection on
+                clientSocket = srvrSocket.accept();
+                System.out.println("Connection Accepted");
 
-        //Variables
-        String clientString = "";
+                clientToServer = new DataInputStream(new BufferedInputStream(clientSocket.getInputStream()));
+                serverToClient = new DataOutputStream(new BufferedOutputStream(clientSocket.getOutputStream()));
+                serverLog = new DataOutputStream(new BufferedOutputStream(System.out));
 
+                while (numClientMessages < 20)
+                {
+                    userString = clientToServer.readUTF();
 
+                    if (userString.equalsIgnoreCase("Quit"))
+                    {
+                        break;
+                    }
+                    serverLog.writeUTF(userString + "\n");
+                    serverLog.flush();
+                    serverToClient.writeUTF("Received the following message: " + userString);
+                    serverToClient.flush();
 
-        int port = 12345;
-        try (ServerSocket serverSocket = new ServerSocket(port)) {
-            System.out.println("Server started and listening on port " + port);
+                    numClientMessages++;
+                }
 
-            /*
-                Will
-             */
-            socketLists.add(serverSocket.accept());
+                System.out.println("Thank you for the messages, closing connection");
 
-//            clientReceive = new DataInputStream(new BufferedInputStream(clientSocket.getInputStream()));
-//            clientSend = new DataOutputStream(new BufferedOutputStream(clientSocket.getOutputStream()));
-//            srvrLog = new DataOutputStream(new BufferedOutputStream(System.out));
-
-
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
 
             System.out.println("Client Accepted");
 
 
-
-            int numClientResp = 0;
-            while(numClientResp < 5)
-            {
-                try
-                {
-                    clientString = clientReceive.readUTF();
-                    clientSend.writeUTF("Message Received: " + clientString + "\n");
-                    clientSend.flush();
-                    numClientResp++;
-                }
-                catch (IOException f)
-                {
-                    System.out.println(f);
-                    numClientResp = 5;
-                }
-            }
-
             System.out.println("Goodbye from the server side!");
-
-        } catch (IOException e) {
-            e.printStackTrace();
         }
-    }
-
-    public void removeClient(Socket userClient)
-    {
-
-    }
 }
+
